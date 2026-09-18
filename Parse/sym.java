@@ -94,5 +94,13 @@ public class sym {
   static final int LSHIFT = 63;
   static final int TYPEDEF = 40;
   static final int AUTO = 56;
+  static final int CASE = 85;
+  static final int DEFAULT = 86;
+  static final int SIGNED = 87;
+  static final int SWITCH = 88;
+  static final int UNSIGNED = 89;
+  static final int QUESTION = 90;
+  static final int HASH = 91;
+  static final int HASHHASH = 92;
 }
 
