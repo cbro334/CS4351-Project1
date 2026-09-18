@@ -72,7 +72,7 @@ Yylex(java.io.InputStream s, ErrorMsg e) {
 <YYINITIAL> "in"    {return tok(sym.IN, null);}
 <YYINITIAL> "end"   {return tok(sym.END, null);}
 <YYINITIAL> "="     {return tok(sym.ASSIGN, null);}
-<STRING>    \""     {return sb;}
+<STRING>    \"      {return sb;}
 <YYINITIAL> "."     {return tok(sym.DOT, null);}
 <YYINITIAL> "("     {return tok(sym.LPAREN, null);}
 <YYINITIAL> ")"     {return tok(sym.RPAREN, null);}
