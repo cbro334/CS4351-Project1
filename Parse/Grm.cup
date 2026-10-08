@@ -40,6 +40,42 @@ terminal COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
 non terminal Absyn.Exp          Exp;
 non terminal Absyn.Var          Var;
 
+//New non-terminal nodes (one for each in provided moodle code)
+non terminal Absyn.CallExp		CallExp;
+non terminal Absyn.Dec			Dec;
+non terminal Absyn.DecList		DecList;
+non terminal Absyn.ExpList		ExpList;
+non terminal Absyn.FieldExpList	FieldExpList;
+non terminal Absyn.FieldList	FieldList;
+non terminal Absyn.FieldVar		FieldVar;
+non terminal Absyn.ForExp		ForExp;
+non terminal Absyn.FunctionDec	FunctionDec;
+non terminal Absyn.IfExp		IfExp;
+non terminal Absyn.IntExp		IntExp;
+non terminal Absyn.LetExp		LetExp;
+non terminal Absyn.NameTy		NameTy;
+non terminal Absyn.NilExp		NilExp;
+non terminal Absyn.OpExp		OpExp;
+non terminal Absyn.Print		Print;
+non terminal Absyn.RecordExp	RecordExp;
+non terminal Absyn.RecordTy		RecordTy;
+non terminal Absyn.SeqExp		SeqExp;
+non terminal Absyn.SimpleVar	SimpleVar;
+non terminal Absyn.StringExp	StringExp;
+non terminal Absyn.SubscriptVar	SubscriptVar;
+non terminal Absyn.Ty			Ty;
+non terminal Absyn.TypeDec		TypeDec;
+non terminal Absyn.VarDec		VarDec;
+non terminal Absyn.VarExp		VarExp;
+non terminal Absyn.WhileExp		WhileExp;
+//implement Absyn.Absyn???
+non terminal Absyn.Absyn		Absyn;
+non terminal Absyn.ArrayExp		ArrayExp;
+non terminal Absyn.ArrayTy		ArrayTy;
+non terminal Absyn.AssignExp	AssignExp;
+non terminal Absyn.BreakExp		BreakExp;
+//new Absyn classes to implement
+non terminal Absyn.SizeOf		SizeOf;
 
 start with Exp;
 //List of rules starts here
@@ -49,7 +85,153 @@ Exp ::= error:e
 	  {: RESULT = new Absyn.SeqExp(eleft, null); :} //{} contain Java instructions that activate once Parse rule clears
 	| Var:v //retreiving value from expression 
 	  {: RESULT = new Absyn.VarExp(vleft, v); :}
+//3.3 Primary Expressions
+	| STRING:
+	{: RESULT = new Absyn. //new class? : :}
+	| LPAREN Exp RPAREN
+	{: RESULT = new Absyn. //new class? : :}
 	;
+
+Postfix ::= Exp
+		  | Postfix LPAREN Exp RPAREN
+	      {: RESULT = new Absyn. //new class? : :}
+		  | Postfix LPAREN ExpList RPAREN
+		  {: RESULT = new Absyn. //new class? : :}
+		  | Postfix DOT ID
+		  {: RESULT = new Absyn. //new class? : :}
+		  | Postfix MINUS GT ID
+		  {: RESULT = new Absyn. //new class? : :}
+		  | Postfix PLUS PLUS
+		  {: RESULT = new Absyn. //new class? : :}
+		  | Postfix MINUS MINUS
+		  {: RESULT = new Absyn. //new class? : :}
+		  ;
+
+AssignExp ::= AssignExp:v,e
+			{: RESULT = new Absyn.AssignExp(vleft, v, e); :}
+		    | FieldExpList COMMA AssignExp
+			{: RESULT = new Absyn. //new class? : :}
+			;
+
+AssignOp ::= EQ
+		   | MULT EQ
+			{: RESULT = new Absyn. //new class? : :}
+		   | DIVIDE EQ
+			{: RESULT = new Absyn. //new class? : :}
+		   | PLUS EQ
+			{: RESULT = new Absyn. //new class? : :}
+		   | MINUS EQ
+			{: RESULT = new Absyn. //new class? : :}
+		   ;
+
+Unary ::= Postfix
+		| PLUS PLUS Unary
+		 {: RESULT = new Absyn. //new class? : :}
+		| MINUS MINUS Unary
+		 {: RESULT = new Absyn. //new class? : :}
+		| Exp OF Unary
+		 {: RESULT = new Absyn. //new class? : :}
+		| Exp OF LPAREN Ty RPAREN
+		 {: RESULT = new Absyn. //new class? : :}
+		;
+
+Cast ::= Unary
+	   | LPAREN Ty RPAREN Cast
+		{: RESULT = new Absyn. //new class? : :}
+	   ;
+
+Mult ::= Cast
+	   | TIMES
+		{: RESULT = new Absyn. //new class? : :}
+	   | DIVIDE
+		{: RESULT = new Absyn. //new class? : :}
+       ;
+
+Add ::= PLUS
+		{: RESULT = new Absyn. //new class? : :}
+	  | MINUS
+		{: RESULT = new Absyn. //new class? : :}
+	  ;
+
+Shift ::= Add
+		  | LT LT
+			{: RESULT = new Absyn. //new class? : :}
+		  | GT GT
+			{: RESULT = new Absyn. //new class? : :}
+		  ;
+
+Relational ::= LT
+			  {: RESULT = new Absyn. //new class? : :}
+		     | GT
+			  {: RESULT = new Absyn. //new class? : :}
+			 | LE
+			  {: RESULT = new Absyn. //new class? : :}
+			 | GE
+			  {: RESULT = new Absyn. //new class? : :}
+			 ;
+
+Equality ::= EQ EQ
+			{: RESULT = new Absyn. //new class? : :}
+		   | NEQ NEQ
+			{: RESULT = new Absyn. //new class? : :}
+		   ;
+
+Bitwise ::= AND
+			{: RESULT = new Absyn. //new class? : :}
+		  | OR
+			{: RESULT = new Absyn. //new class? : :}
+		  ;
+
+Statements ::= Labeled
+			 | Compound
+			 | Expr
+			 | Selection
+			 | Iteration
+			 | Jump
+			 ;
+
+Labeled ::= ID COLON Statements
+			{: RESULT = new Absyn. //new class? : :}
+		  | Exp COLON Statements
+			{: RESULT = new Absyn. //new class? : :}
+		  | Default COLON Statements
+			{: RESULT = new Absyn. //new class? : :}
+		  ;
+
+Compound ::= LBRACE DecList ExpList RBRACE
+			{: RESULT = new Absyn. //new class? : :}
+		   ;
+
+DecList ::= Dec
+			{: RESULT = new Absyn. //new class? : :}
+		  | DecList Dec
+			{: RESULT = new Absyn. //new class? : :}
+	      ;
+
+ExpList ::= Statements
+		  | ExpList Statements
+			{: RESULT = new Absyn. //new class? : :}
+		  ;
+
+Selection ::= IF LPAREN Exp RPAREN Statements
+			 {: RESULT = new Absyn. //new class? : :}
+			| Selection ELSE Statements
+			 {: RESULT = new Absyn. //new class? : :}
+			| SWITCH LPAREN Exp RPAREN Statements
+			 {: RESULT = new Absyn. //new class? : :}
+			;
+
+Iteration ::= WHILE LPAREN Exp RPAREN Statements
+			 {: RESULT = new Absyn. //new class? : :}
+			| DO Statements WHILE LPAREN Exp RPAREN
+			 {: RESULT = new Absyn. //new class? : :}
+			| FOR LPAREN Exp SEMICOLON Exp SEMICOLON RPAREN Statements
+			 {: RESULT = new Absyn. //new class? : :}
+			;
+
+Jump ::= BREAK
+		{: RESULT = new Absyn. //new class? : :}
+		;
 
 Var ::=   ID:n //
 	  {: RESULT = new Absyn.SimpleVar(nleft, sym(n)); :}
