@@ -1,15 +1,15 @@
 package Parse;
 
 action code {: static Symbol.Symbol sym(String s) {
-	         return Symbol.Symbol.symbol(s);
-	        }
-	    :};
+        return Symbol.Symbol.symbol(s);
+    	  }
+	  :};
 
 parser code  {: 
   Lexer lexer;
 
   public void syntax_error(java_cup.runtime.Symbol current) {
-   report_error("Syntax error (" + current.sym + ")", current);
+     report_error("Syntax error (" + current.sym + ")", current);
   }
 
   ErrorMsg.ErrorMsg errorMsg;
@@ -27,8 +27,7 @@ parser code  {:
 
 scan with {: return lexer.nextToken(); :};
 
-//String declares value of token     INT is a token
-//terminal nodes have values
+//Terminals:
 terminal String ID, STRING;
 terminal Integer INT;
 terminal COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK, 
@@ -36,203 +35,144 @@ terminal COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK,
 	GT, GE, AND, OR, ASSIGN, ARRAY, IF, THEN, ELSE, WHILE, FOR, TO,
 	DO, LET, IN, END, OF, BREAK, NIL, FUNCTION, VAR, TYPE;
 
-//Absyn nodes are attached to non-terminal nodes
-non terminal Absyn.Exp          Exp;
-non terminal Absyn.Var          Var;
+//Added Terminals:
+terminal FUN, RETURN, CONTINUE, NOT, INC, DEC, ARROW;
+terminal PLUS_ASSIGN, MINUS_ASSIGN, TIMES_ASSIGN, DIVIDE_ASSIGN, MOD, QMARK;
 
-//New non-terminal nodes (one for each in provided moodle code)
-non terminal Absyn.CallExp		CallExp;
-non terminal Absyn.Dec			Dec;
-non terminal Absyn.DecList		DecList;
-non terminal Absyn.ExpList		ExpList;
-non terminal Absyn.FieldExpList	FieldExpList;
-non terminal Absyn.FieldList	FieldList;
-non terminal Absyn.FieldVar		FieldVar;
-non terminal Absyn.ForExp		ForExp;
-non terminal Absyn.FunctionDec	FunctionDec;
-non terminal Absyn.IfExp		IfExp;
-non terminal Absyn.IntExp		IntExp;
-non terminal Absyn.LetExp		LetExp;
-non terminal Absyn.NameTy		NameTy;
-non terminal Absyn.NilExp		NilExp;
-non terminal Absyn.OpExp		OpExp;
-non terminal Absyn.Print		Print;
-non terminal Absyn.RecordExp	RecordExp;
-non terminal Absyn.RecordTy		RecordTy;
-non terminal Absyn.SeqExp		SeqExp;
-non terminal Absyn.SimpleVar	SimpleVar;
-non terminal Absyn.StringExp	StringExp;
-non terminal Absyn.SubscriptVar	SubscriptVar;
-non terminal Absyn.Ty			Ty;
-non terminal Absyn.TypeDec		TypeDec;
-non terminal Absyn.VarDec		VarDec;
-non terminal Absyn.VarExp		VarExp;
-non terminal Absyn.WhileExp		WhileExp;
-//implement Absyn.Absyn???
-non terminal Absyn.Absyn		Absyn;
-non terminal Absyn.ArrayExp		ArrayExp;
-non terminal Absyn.ArrayTy		ArrayTy;
-non terminal Absyn.AssignExp	AssignExp;
-non terminal Absyn.BreakExp		BreakExp;
-//new Absyn classes to implement
-non terminal Absyn.SizeOf		SizeOf;
+//Non-Terminals: (Exp was replaced with Program to reduce confusion with Expressions in C89 documentation)
+non terminal Absyn.Absyn          Program;
+non terminal Absyn.Stm            Statement, Compound_statement, Expression_statement, Selection_statement, Iteration_statement, Jump_statement;
+non terminal Absyn.Exp            Expression, Assignment_expression, Conditional_expression, Logical_or_expression, Logical_and_expression;
+non terminal Absyn.Exp            Equality_expression, Relational_expression, Additive_expression, Multiplicative_expression;
+non terminal Absyn.Exp            Unary_expression, Postfix_expression, Primary_expression;
+non terminal Absyn.ExpList        Argument_expression_list, Statement_list, Declaration_list;
 
-start with Exp;
-//List of rules starts here
-//Grammar rules take out values from terminaIs and non-terminals 
+non terminal Absyn.Stm            Declaration, Var_declaration, Fun_declaration;
+non terminal Absyn.ExpList        Bitfield_list, Parameters, Parameter_list;
+non terminal String               Type, Type_name, Type_augments;
+non terminal Absyn.Exp            Initialization;
 
-Exp ::= error:e
-	  {: RESULT = new Absyn.SeqExp(eleft, null); :} //{} contain Java instructions that activate once Parse rule clears
-	| Var:v //retreiving value from expression 
-	  {: RESULT = new Absyn.VarExp(vleft, v); :}
-//3.3 Primary Expressions
-	| STRING:
-	{: RESULT = new Absyn. //new class? : :}
-	| LPAREN Exp RPAREN
-	{: RESULT = new Absyn. //new class? : :}
-	;
+start with program;
 
-Postfix ::= Exp
-		  | Postfix LPAREN Exp RPAREN
-	      {: RESULT = new Absyn. //new class? : :}
-		  | Postfix LPAREN ExpList RPAREN
-		  {: RESULT = new Absyn. //new class? : :}
-		  | Postfix DOT ID
-		  {: RESULT = new Absyn. //new class? : :}
-		  | Postfix MINUS GT ID
-		  {: RESULT = new Absyn. //new class? : :}
-		  | Postfix PLUS PLUS
-		  {: RESULT = new Absyn. //new class? : :}
-		  | Postfix MINUS MINUS
-		  {: RESULT = new Absyn. //new class? : :}
-		  ;
+Program ::= Declaration_list:dl {: RESULT = dl; :};
 
-AssignExp ::= AssignExp:v,e
-			{: RESULT = new Absyn.AssignExp(vleft, v, e); :}
-		    | FieldExpList COMMA AssignExp
-			{: RESULT = new Absyn. //new class? : :}
-			;
+//Declaration:
+Declaration_list ::= declaration:d declaration_list:dl 
+{: RESULT = new ExpList(dleft, d, dl); :};
 
-AssignOp ::= EQ
-		   | MULT EQ
-			{: RESULT = new Absyn. //new class? : :}
-		   | DIVIDE EQ
-			{: RESULT = new Absyn. //new class? : :}
-		   | PLUS EQ
-			{: RESULT = new Absyn. //new class? : :}
-		   | MINUS EQ
-			{: RESULT = new Absyn. //new class? : :}
-		   ;
+Declaration ::= var_declaration:v {: RESULT = v; :}
+              | fun_declaration:f {: RESULT = f; :};
 
-Unary ::= Postfix
-		| PLUS PLUS Unary
-		 {: RESULT = new Absyn. //new class? : :}
-		| MINUS MINUS Unary
-		 {: RESULT = new Absyn. //new class? : :}
-		| Exp OF Unary
-		 {: RESULT = new Absyn. //new class? : :}
-		| Exp OF LPAREN Ty RPAREN
-		 {: RESULT = new Absyn. //new class? : :}
-		;
+Var_declaration ::= VAR bitfield_list:bl type:t IDENTIFIER:id initialization:i SEMICOLON {: RESULT = new VarDecl(VARleft, bl, t, Symbol.symbol(id), i); :};
 
-Cast ::= Unary
-	   | LPAREN Ty RPAREN Cast
-		{: RESULT = new Absyn. //new class? : :}
-	   ;
+Fun_declaration ::= FUN bitfield_list:bl type:t IDENTIFIER:id LPAR parameters:p RPAR compound_statement:cs {: RESULT = new FunDecl(FUNleft, bl, t, Symbol.symbol(id), p, cs); :};
 
-Mult ::= Cast
-	   | TIMES
-		{: RESULT = new Absyn. //new class? : :}
-	   | DIVIDE
-		{: RESULT = new Absyn. //new class? : :}
-       ;
+Bitfield_list ::= IDENTIFIER:id bitfield_list:bl {: RESULT = new ExpList(idleft, new FieldExp(idleft, id), bl); :}
 
-Add ::= PLUS
-		{: RESULT = new Absyn. //new class? : :}
-	  | MINUS
-		{: RESULT = new Absyn. //new class? : :}
-	  ;
+Type ::= type_name:tn type_augments:ta            {: RESULT = tn + ta; :}
+       | type_name:tn                             {: RESULT = tn; :};
 
-Shift ::= Add
-		  | LT LT
-			{: RESULT = new Absyn. //new class? : :}
-		  | GT GT
-			{: RESULT = new Absyn. //new class? : :}
-		  ;
+Type_name ::= IDENTIFIER:id                       {: RESULT = id; :};
 
-Relational ::= LT
-			  {: RESULT = new Absyn. //new class? : :}
-		     | GT
-			  {: RESULT = new Absyn. //new class? : :}
-			 | LE
-			  {: RESULT = new Absyn. //new class? : :}
-			 | GE
-			  {: RESULT = new Absyn. //new class? : :}
-			 ;
+Type_augments ::= MUL type_augments:ta            {: RESULT = "*" + ta; :}
+                | LBRACK RBRACK type_augments:ta   {: RESULT = "[]" + ta; :}
+                | LBRACK INT_LITERAL:i RBRACK type_augments:ta {: RESULT = "[" + i + "]" + ta; :}
+                | MUL                             {: RESULT = "*"; :}
+                | LBRACK RBRACK                   {: RESULT = "[]"; :}
+                | LBRACK INT_LITERAL:i RBRACK      {: RESULT = "[" + i + "]"; :};
 
-Equality ::= EQ EQ
-			{: RESULT = new Absyn. //new class? : :}
-		   | NEQ NEQ
-			{: RESULT = new Absyn. //new class? : :}
-		   ;
+Parameters ::= parameter_list:pl                 {: RESULT = pl; :}
 
-Bitwise ::= AND
-			{: RESULT = new Absyn. //new class? : :}
-		  | OR
-			{: RESULT = new Absyn. //new class? : :}
-		  ;
+Parameter_list ::= type:t IDENTIFIER:id COMMA parameter_list:pl {: RESULT = new ExpList(tleft, new ParamExp(tleft, t, id), pl); :}
+                 | type:t IDENTIFIER:id                         {: RESULT = new ExpList(tleft, new ParamExp(tleft, t, id), null); :};
 
-Statements ::= Labeled
-			 | Compound
-			 | Expr
-			 | Selection
-			 | Iteration
-			 | Jump
-			 ;
+Initialization ::= ASSIGN assignment_expression:e {: RESULT = e; :}
 
-Labeled ::= ID COLON Statements
-			{: RESULT = new Absyn. //new class? : :}
-		  | Exp COLON Statements
-			{: RESULT = new Absyn. //new class? : :}
-		  | Default COLON Statements
-			{: RESULT = new Absyn. //new class? : :}
-		  ;
+//Statements:
+Statement ::= compound_statement:s   {: RESULT = s; :}
+            | expression_statement:s {: RESULT = s; :}
+            | selection_statement:s  {: RESULT = s; :}
+            | iteration_statement:s  {: RESULT = s; :}
+            | jump_statement:s       {: RESULT = s; :};
 
-Compound ::= LBRACE DecList ExpList RBRACE
-			{: RESULT = new Absyn. //new class? : :}
-		   ;
+Compound_statement ::= LBRACE declaration_list:dl statement_list:sl RBRACE {: RESULT = new CompoundStm(LBRACEleft, dl, sl); :};
 
-DecList ::= Dec
-			{: RESULT = new Absyn. //new class? : :}
-		  | DecList Dec
-			{: RESULT = new Absyn. //new class? : :}
-	      ;
+Statement_list ::= statement:s statement_list:sl {: RESULT = new ExpList(sleft, s, sl); :}
 
-ExpList ::= Statements
-		  | ExpList Statements
-			{: RESULT = new Absyn. //new class? : :}
-		  ;
+Expression_statement ::= expression:e SEMICOLON  {: RESULT = new ExpStm(eleft, e); :}
+                       | SEMICOLON               {: RESULT = null; :};
 
-Selection ::= IF LPAREN Exp RPAREN Statements
-			 {: RESULT = new Absyn. //new class? : :}
-			| Selection ELSE Statements
-			 {: RESULT = new Absyn. //new class? : :}
-			| SWITCH LPAREN Exp RPAREN Statements
-			 {: RESULT = new Absyn. //new class? : :}
-			;
+Selection_statement ::= IF LPAR expression:e RPAR statement:s1 ELSE statement:s2 {: RESULT = new IfStm(IFleft, e, s1, s2); :}
+                      | IF LPAR expression:e RPAR statement:s {: RESULT = new IfStm(IFleft, e, s, null); :};
 
-Iteration ::= WHILE LPAREN Exp RPAREN Statements
-			 {: RESULT = new Absyn. //new class? : :}
-			| DO Statements WHILE LPAREN Exp RPAREN
-			 {: RESULT = new Absyn. //new class? : :}
-			| FOR LPAREN Exp SEMICOLON Exp SEMICOLON RPAREN Statements
-			 {: RESULT = new Absyn. //new class? : :}
-			;
+Iteration_statement ::= WHILE LPAR expression:e RPAR statement:s {: RESULT = new WhileStm(WHILEleft, e, s); :}
+                      | DO statement:s WHILE LPAR expression:e RPAR SEMICOLON {: RESULT = new DoWhileStm(DOleft, s, e); :}
+                      | FOR LPAR expression_statement:init expression_statement:check expression:inc RPAR statement:s {: RESULT = new ForLoop(FORleft, init, check, inc, s); :};
 
-Jump ::= BREAK
-		{: RESULT = new Absyn. //new class? : :}
-		;
+Jump_statement ::= CONTINUE SEMICOLON            {: RESULT = new ContinueStm(CONTINUEleft); :}
+                 | BREAK SEMICOLON               {: RESULT = new BreakStm(BREAKleft); :}
+                 | RETURN expression:e SEMICOLON {: RESULT = new ReturnStm(RETURNleft, e); :}
+                 | RETURN SEMICOLON              {: RESULT = new ReturnStm(RETURNleft, null); :};
 
-Var ::=   ID:n //
-	  {: RESULT = new Absyn.SimpleVar(nleft, sym(n)); :}
-	;
+//Expressions:
+Expression ::= assignment_expression:e          {: RESULT = e; :}
+             | expression:e COMMA assignment_expression:ae {: RESULT = new OpExp(eleft, e, OpExp.COMMA, ae); :};
+
+Assignment_expression ::= conditional_expression:e {: RESULT = e; :}
+                        | unary_expression:lhs ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.ASSIGN, rhs); :}
+                        | unary_expression:lhs PLUS_ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.PLUS_ASSIGN, rhs); :}
+                        | unary_expression:lhs MINUS_ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.MINUS_ASSIGN, rhs); :};
+
+Conditional_expression ::= logical_or_expression:e {: RESULT = e; :}
+                         | logical_or_expression:cond QMARK expression:trueExp COLON conditional_expression:falseExp {: RESULT = new CondExp(condleft, cond, trueExp, falseExp); :};
+
+Logical_or_expression ::= logical_and_expression:e {: RESULT = e; :}
+                        | logical_or_expression:l OR logical_and_expression:r {: RESULT = new OpExp(lleft, l, OpExp.OR, r); :};
+
+Logical_and_expression ::= equality_expression:e {: RESULT = e; :}
+                         | logical_and_expression:l AND equality_expression:r {: RESULT = new OpExp(lleft, l, OpExp.AND, r); :};
+
+Equality_expression ::= relational_expression:e {: RESULT = e; :}
+                      | equality_expression:l EQ relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.EQ, r); :}
+                      | equality_expression:l NEQ relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.NEQ, r); :};
+
+Relational_expression ::= additive_expression:e {: RESULT = e; :}
+                        | relational_expression:l LT additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LT, r); :}
+                        | relational_expression:l GT additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GT, r); :}
+                        | relational_expression:l LE additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LE, r); :}
+                        | relational_expression:l GE additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GE, r); :};
+
+Additive_expression ::= multiplicative_expression:e {: RESULT = e; :}
+                      | additive_expression:l PLUS multiplicative_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.PLUS, r); :}
+                      | additive_expression:l MINUS multiplicative_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MINUS, r); :};
+
+Multiplicative_expression ::= unary_expression:e {: RESULT = e; :}
+                            | multiplicative_expression:l MUL unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MUL, r); :}
+                            | multiplicative_expression:l DIV unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.DIV, r); :}
+                            | multiplicative_expression:l MOD unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MOD, r); :};
+
+Unary_expression ::= postfix_expression:e {: RESULT = e; :}
+                   | INC unary_expression:e   {: RESULT = new UnaryOpExp(INCleft, UnaryOpExp.PRE_INC, e); :}
+                   | DEC unary_expression:e   {: RESULT = new UnaryOpExp(DECleft, UnaryOpExp.PRE_DEC, e); :}
+                   | MINUS unary_expression:e {: RESULT = new UnaryOpExp(MINUSleft, UnaryOpExp.NEG, e); :}
+                   | PLUS unary_expression:e  {: RESULT = new UnaryOpExp(PLUSleft, UnaryOpExp.POS, e); :}
+                   | NOT unary_expression:e   {: RESULT = new UnaryOpExp(NOTleft, UnaryOpExp.NOT, e); :}
+				   | MUL unary_expression:e   {: RESULT = new UnaryOpExp(MULleft, UnaryOpExp.DEREF, e); :}
+				   | AND unary_expression:e   {: RESULT = new UnaryOpExp(ANDleft, UnaryOpExp.ADDR_OF, e); :};
+
+
+Postfix_expression ::= primary_expression:e {: RESULT = e; :}
+					 | postfix_expression:e LBRACK expression:index RBRACK {: RESULT = new ArrayRefExp(eleft, e, index); :}
+					 | postfix_expression:e LPAR argument_expression_list:args RPAR {: RESULT = new CallExp(eleft, e, args); :}
+					 | postfix_expression:e DOT IDENTIFIER:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), false); :}
+				     | postfix_expression:e ARROW IDENTIFIER:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), true); :}
+					 | postfix_expression:e INC {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_INC, e); :}
+					 | postfix_expression:e DEC {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_DEC, e); :};
+
+Argument_expression_list ::= assignment_expression:e COMMA argument_expression_list:el {: RESULT = new ExpList(eleft, e, el); :}
+						   | assignment_expression:e {: RESULT = new ExpList(eleft, e, null); :}
+
+Primary_expression ::= IDENTIFIER:id {: RESULT = new VarExp(idleft, Symbol.symbol(id));细 :}
+					 | INT_LITERAL:val   {: RESULT = new IntExp(valleft, val); :}
+					 | STRING_LITERAL:s  {: RESULT = new StringExp(sleft, s); :}
+					 | LPAR expression:e RPAR {: RESULT = e; :};
