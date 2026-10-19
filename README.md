@@ -22,3 +22,19 @@ Floating-point constants, header names, preprocessing numbers, trigraphs, and mu
 ## AI Usage
 
 AI tools assisted with generating test cases to validate our implementation
+
+## Project 2
+
+Extended the Project 1 lexer with a JavaCUP parser that generates and prints an Abstract Syntax Tree (AST).
+
+### Contributions
+- Courtney Platt: Write your own here.
+- Christopher Brown: Write your own here.
+- Aaron Meche: Write your own here.
+- Minseo Lee: Completed AST classes, integrated the parser, fixed grammar issues.
+
+### Testing and Limitations
+The project builds successfully and passes the tested C programs. One dangling-else shift/reduce conflict is resolved by shifting. No reduce/reduce conflicts were reported. Error recovery is limited, and some C89 features are not implemented.
+
+### AI Usage
+AI assisted with creating test cases, code suggestions, and debugging.

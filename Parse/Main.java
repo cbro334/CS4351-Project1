@@ -1,66 +1,43 @@
 package Parse;
 
-import java.io.InputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
+import java.io.InputStream;
+import java.io.PrintWriter;
 
 public class Main {
+    public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            System.err.println("Usage: java Parse.Main <file.c>");
+            System.exit(1);
+        }
 
-    public static void main(String[] args) throws IOException {
+        boolean failed = false;
 
         for (String filename : args) {
+            ErrorMsg.ErrorMsg errors = new ErrorMsg.ErrorMsg(filename);
 
-            ErrorMsg.ErrorMsg errorMsg = new ErrorMsg.ErrorMsg(filename);
+            try (InputStream input = new FileInputStream(filename)) {
+                Lexer lexer = new Yylex(input, errors);
+                Grm parser = new Grm(lexer, errors);
 
-            InputStream inp = new FileInputStream(filename);
-            Lexer lexer = new Yylex(inp, errorMsg);
+                java_cup.runtime.Symbol result = parser.parse();
 
-            java_cup.runtime.Symbol tok;
-
-            do {
-                tok = lexer.nextToken();
-
-                String extra = "";
-
-                if (tok.sym == sym.ID) {
-                    extra = "\t$" + tok.value;
+                if (errors.anyErrors) {
+                    failed = true;
+                } else {
+                    Absyn.Absyn tree = (Absyn.Absyn) result.value;
+                    new Absyn.TreePrinter(
+                        new PrintWriter(System.out, true)
+                    ).print(tree);
                 }
-                else if (tok.sym == sym.DECIMAL_LITERAL) {
-                    extra = "\t#" + tok.value;
-                }
-                else if (tok.sym == sym.STRING_LITERAL) {
-                    extra = " \"" + tok.value + "\"";
-                }
-                else if (tok.sym == sym.CHAR_LITERAL) {
-                    extra = " '" + tok.value + "'";
-                }
-
-                System.out.println(
-                    symnames[tok.sym] + " " + tok.left + extra
-                );
-
-            } while (tok.sym != sym.EOF);
-
-            inp.close();
-        }
-    }
-
-    static String[] symnames = new String[100];
-
-    static {
-        for (Field field : sym.class.getDeclaredFields()) {
-
-            if (field.getType() == int.class) {
-
-                try {
-                    int value = field.getInt(null);
-                    symnames[value] = field.getName();
-                }
-                catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
-                }
+            } catch (Exception e) {
+                System.err.println(filename + ": parsing failed: " + e.getMessage());
+                failed = true;
             }
+        }
+
+        if (failed) {
+            System.exit(1);
         }
     }
 }

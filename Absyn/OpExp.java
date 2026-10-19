@@ -6,4 +6,5 @@ public class OpExp extends Exp {
    public OpExp(int p, Exp l, int o, Exp r) {pos=p; left=l; oper=o; right=r;}
    public final static int PLUS=0, MINUS=1, MUL=2, DIV=3,
 		    EQ=4, NE=5, LT=6, LE=7, GT=8, GE=9;
+   public final static int NEQ=NE, MOD=10, AND=11, OR=12, COMMA=13, BIT_AND=14, BIT_OR=15, BIT_XOR=16, SHL=17, SHR=18;
 }
