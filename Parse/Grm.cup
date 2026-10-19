@@ -1,7 +1,47 @@
 package Parse;
 
-action code {: static Symbol.Symbol sym(String s) {
-        return Symbol.Symbol.symbol(s);
+import Absyn.StringExp;
+import Absyn.IntExp;
+import Absyn.VarExp;
+import Absyn.ExpList;
+import Absyn.OpExp;
+import Absyn.CallExp;
+import Absyn.AssignExp;
+import Absyn.UnaryOpExp;
+import Absyn.MemberExp;
+import Absyn.ArrayRefExp;
+import Absyn.CondExp;
+import Absyn.ReturnStm;
+import Absyn.BreakStm;
+import Absyn.ContinueStm;
+import Absyn.ForLoop;
+import Absyn.DoWhileStm;
+import Absyn.WhileStm;
+import Absyn.IfStm;
+import Absyn.ExpStm;
+import Absyn.StmList;
+import Absyn.CompoundStm;
+import Symbol.Symbol;
+import Absyn.ParamExp;
+import Absyn.FieldExp;
+import Absyn.VarDecl;
+import Absyn.FunDecl;
+import Absyn.ProgramNode;
+import Absyn.DecList;
+import Absyn.ParenExp;
+import Absyn.CharExp;
+import Absyn.CastExp;
+import Absyn.SizeofExp;
+import Absyn.ArrayInitExp;
+import Absyn.FunPrototypeDecl;
+import Absyn.TypedefDecl;
+import Absyn.StructUnionDecl;
+import Absyn.EnumDecl;
+import Absyn.EnumMemberExp;
+
+
+action code {: static Symbol sym(String s) {
+        return Symbol.symbol(s);
     	  }
 	  :};
 
@@ -28,151 +68,279 @@ parser code  {:
 scan with {: return lexer.nextToken(); :};
 
 //Terminals:
-terminal String ID, STRING;
-terminal Integer INT;
+terminal String ID, STRING_LITERAL, DECIMAL_LITERAL;
+terminal INT;
 terminal COMMA, COLON, SEMICOLON, LPAREN, RPAREN, LBRACK, RBRACK, 
-	LBRACE, RBRACE, DOT, PLUS, MINUS, TIMES, DIVIDE, EQ, NEQ, LT, LE, 
+	LBRACE, RBRACE, PERIOD, PLUS, MINUS, TIMES, DIVIDE, EQ, NEQ, LT, LE,
 	GT, GE, AND, OR, ASSIGN, ARRAY, IF, THEN, ELSE, WHILE, FOR, TO,
 	DO, LET, IN, END, OF, BREAK, NIL, FUNCTION, VAR, TYPE;
 
 //Added Terminals:
-terminal FUN, RETURN, CONTINUE, NOT, INC, DEC, ARROW;
-terminal PLUS_ASSIGN, MINUS_ASSIGN, TIMES_ASSIGN, DIVIDE_ASSIGN, MOD, QMARK;
+terminal FUN, RETURN, CONTINUE, NOT, INCREMENT, DECREMENT, ARROW;
+terminal ADDASSIGN, SUBASSIGN, MULASSIGN, DIVASSIGN, MODULUS, QUESTION;
 
+
+// Additional tokens emitted by the Project 1 lexer.
+terminal AUTO, BITWISEAND, BWISEANDASSIGN, BWISEOR, BWISEORASSIGN, BWISEXOR, BWISEXORASSIGN, CASE, CHAR, CONST, DEFAULT, DOUBLE, ELIPSES, ENUM, EXTERN, FLOAT, GOTO, HASH, HASHHASH, LONG, LSHIFT, LSHIFTASSIGN, MODASSIGN, REGISTER, RSHIFT, RSHIFTASSIGN, SHORT, SIGNED, SIZEOF, STATIC, STRUCT, SWITCH, TILDE, TYPEDEF, UNION, UNSIGNED, VOID, VOLATILE;
+terminal String CHAR_LITERAL;
 //Non-Terminals: (Exp was replaced with Program to reduce confusion with Expressions in C89 documentation)
 non terminal Absyn.Absyn          Program;
 non terminal Absyn.Stm            Statement, Compound_statement, Expression_statement, Selection_statement, Iteration_statement, Jump_statement;
 non terminal Absyn.Exp            Expression, Assignment_expression, Conditional_expression, Logical_or_expression, Logical_and_expression;
-non terminal Absyn.Exp            Equality_expression, Relational_expression, Additive_expression, Multiplicative_expression;
-non terminal Absyn.Exp            Unary_expression, Postfix_expression, Primary_expression;
-non terminal Absyn.ExpList        Argument_expression_list, Statement_list, Declaration_list;
+non terminal Absyn.Exp            Equality_expression, Relational_expression, Shift_expression, Additive_expression, Multiplicative_expression;
+non terminal Absyn.Exp And_expression, Exclusive_or_expression, Inclusive_or_expression;
+non terminal Absyn.Exp            Unary_expression, Postfix_expression, Primary_expression, Cast_expression;
+non terminal String Cast_type, Builtin_type;
+non terminal Absyn.ExpList        Argument_expression_list;
+non terminal Absyn.StmList        Statement_list;
+non terminal Absyn.DecList        Declaration_list;
 
-non terminal Absyn.Stm            Declaration, Var_declaration, Fun_declaration;
+non terminal Absyn.Dec            Declaration, Var_declaration, Fun_declaration, Fun_prototype, Typedef_declaration, Struct_union_declaration, Struct_field;
 non terminal Absyn.ExpList        Bitfield_list, Parameters, Parameter_list;
-non terminal String               Type, Type_name, Type_augments;
-non terminal Absyn.Exp            Initialization;
+non terminal String               Type, Type_name, Type_augments, Pointer_seq, Array_seq;
+non terminal Absyn.Exp            Initialization, Optional_for_increment, Initializer_value;
+non terminal Absyn.ExpList        Initializer_items, Initializer_tail, Enumerator_list, Enumerator_tail;
+non terminal Absyn.Exp            Enumerator;
+non terminal Absyn.Dec            Enum_declaration;
+non terminal Absyn.DecList        Struct_field_list;
 
-start with program;
+start with Program;
 
-Program ::= Declaration_list:dl {: RESULT = dl; :};
+Program ::= Declaration_list:dl {: RESULT = new ProgramNode(dlleft, dl); :};
 
 //Declaration:
-Declaration_list ::= declaration:d declaration_list:dl 
-{: RESULT = new ExpList(dleft, d, dl); :};
+Declaration_list ::= Declaration:d Declaration_list:dl
+{: RESULT = new DecList(d, dl); :}
+| /* empty */ {: RESULT = null; :};
 
-Declaration ::= var_declaration:v {: RESULT = v; :}
-              | fun_declaration:f {: RESULT = f; :};
+Declaration ::= Var_declaration:v {: RESULT = v; :}
+              | Fun_declaration:f {: RESULT = f; :}
+              | Fun_prototype:f {: RESULT = f; :}
+              | Typedef_declaration:t {: RESULT = t; :}
+              | Struct_union_declaration:r {: RESULT = r; :}
+              | Enum_declaration:e {: RESULT = e; :};
 
-Var_declaration ::= VAR bitfield_list:bl type:t IDENTIFIER:id initialization:i SEMICOLON {: RESULT = new VarDecl(VARleft, bl, t, Symbol.symbol(id), i); :};
+Var_declaration ::= VAR:kw Bitfield_list:bl Type:t ID:id Initialization:i SEMICOLON {: RESULT = new VarDecl(kwleft, bl, t, Symbol.symbol(id), i); :};
 
-Fun_declaration ::= FUN bitfield_list:bl type:t IDENTIFIER:id LPAR parameters:p RPAR compound_statement:cs {: RESULT = new FunDecl(FUNleft, bl, t, Symbol.symbol(id), p, cs); :};
+Fun_declaration ::= FUN:kw Bitfield_list:bl Type:t ID:id LPAREN Parameters:p RPAREN Compound_statement:cs {: RESULT = new FunDecl(kwleft, bl, t, Symbol.symbol(id), p, cs); :};
 
-Bitfield_list ::= IDENTIFIER:id bitfield_list:bl {: RESULT = new ExpList(idleft, new FieldExp(idleft, id), bl); :}
+Fun_prototype ::= FUN:kw Bitfield_list:bl Type:t ID:id LPAREN Parameters:p RPAREN SEMICOLON {: RESULT = new FunPrototypeDecl(kwleft, bl, t, Symbol.symbol(id), p); :};
 
-Type ::= type_name:tn type_augments:ta            {: RESULT = tn + ta; :}
-       | type_name:tn                             {: RESULT = tn; :};
+Typedef_declaration ::= TYPEDEF:kw Type:t ID:id SEMICOLON
+    {: RESULT = new TypedefDecl(kwleft, t, Symbol.symbol(id)); :};
 
-Type_name ::= IDENTIFIER:id                       {: RESULT = id; :};
+Struct_union_declaration ::= Bitfield_list:mods STRUCT:kind ID:id LBRACE Struct_field_list:fields RBRACE SEMICOLON
+    {: RESULT = new StructUnionDecl(kindleft, mods, "struct", Symbol.symbol(id), fields); :}
+    | Bitfield_list:mods UNION:kind ID:id LBRACE Struct_field_list:fields RBRACE SEMICOLON
+    {: RESULT = new StructUnionDecl(kindleft, mods, "union", Symbol.symbol(id), fields); :};
 
-Type_augments ::= MUL type_augments:ta            {: RESULT = "*" + ta; :}
-                | LBRACK RBRACK type_augments:ta   {: RESULT = "[]" + ta; :}
-                | LBRACK INT_LITERAL:i RBRACK type_augments:ta {: RESULT = "[" + i + "]" + ta; :}
-                | MUL                             {: RESULT = "*"; :}
-                | LBRACK RBRACK                   {: RESULT = "[]"; :}
-                | LBRACK INT_LITERAL:i RBRACK      {: RESULT = "[" + i + "]"; :};
+Struct_field_list ::= Struct_field:f Struct_field_list:tail
+    {: RESULT = new DecList(f, tail); :}
+    | /* empty */ {: RESULT = null; :};
 
-Parameters ::= parameter_list:pl                 {: RESULT = pl; :}
+Struct_field ::= Type:t ID:id SEMICOLON
+    {: RESULT = new VarDecl(tleft, null, t, Symbol.symbol(id), null); :};
 
-Parameter_list ::= type:t IDENTIFIER:id COMMA parameter_list:pl {: RESULT = new ExpList(tleft, new ParamExp(tleft, t, id), pl); :}
-                 | type:t IDENTIFIER:id                         {: RESULT = new ExpList(tleft, new ParamExp(tleft, t, id), null); :};
+Enum_declaration ::= ENUM:kw ID:id LBRACE Enumerator_list:items RBRACE SEMICOLON
+    {: RESULT = new EnumDecl(kwleft, Symbol.symbol(id), items); :};
 
-Initialization ::= ASSIGN assignment_expression:e {: RESULT = e; :}
+Enumerator_list ::= Enumerator:item Enumerator_tail:tail
+    {: RESULT = new ExpList(item, tail); :};
+
+Enumerator_tail ::= COMMA Enumerator_list:rest {: RESULT = rest; :}
+    | COMMA {: RESULT = null; :}
+    | /* empty */ {: RESULT = null; :};
+
+Enumerator ::= ID:id {: RESULT = new EnumMemberExp(idleft, Symbol.symbol(id), null); :}
+    | ID:id ASSIGN Conditional_expression:value
+      {: RESULT = new EnumMemberExp(idleft, Symbol.symbol(id), value); :};
+
+Bitfield_list ::= AUTO:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "auto"), bl); :}
+ | REGISTER:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "register"), bl); :}
+ | STATIC:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "static"), bl); :}
+ | EXTERN:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "extern"), bl); :}
+ | CONST:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "const"), bl); :}
+ | VOLATILE:kw Bitfield_list:bl {: RESULT = new ExpList(new FieldExp(kwleft, "volatile"), bl); :}
+ | /* empty */ {: RESULT = null; :};
+
+Type ::= Type_name:tn Type_augments:ta            {: RESULT = tn + ta; :}
+       | Type_name:tn                             {: RESULT = tn; :};
+
+Type_name ::= ID:id {: RESULT = id; :}
+ | VOID {: RESULT = "void"; :}
+ | CHAR {: RESULT = "char"; :}
+ | SHORT {: RESULT = "short"; :}
+ | INT {: RESULT = "int"; :}
+ | LONG {: RESULT = "long"; :}
+ | SIGNED {: RESULT = "signed"; :}
+ | UNSIGNED {: RESULT = "unsigned"; :};
+
+Type_augments ::= Pointer_seq:p Array_seq:a {: RESULT = p + a; :}
+                | Pointer_seq:p {: RESULT = p; :}
+                | Array_seq:a {: RESULT = a; :};
+
+Pointer_seq ::= TIMES Pointer_seq:p {: RESULT = "*" + p; :}
+              | TIMES {: RESULT = "*"; :};
+
+Array_seq ::= LBRACK RBRACK Array_seq:a {: RESULT = "[]" + a; :}
+            | LBRACK DECIMAL_LITERAL:i RBRACK Array_seq:a {: RESULT = "[" + i + "]" + a; :}
+            | LBRACK RBRACK {: RESULT = "[]"; :}
+            | LBRACK DECIMAL_LITERAL:i RBRACK {: RESULT = "[" + i + "]"; :};
+
+Parameters ::= Parameter_list:pl {: RESULT = pl; :}
+| /* empty */ {: RESULT = null; :};
+
+Parameter_list ::= Type:t ID:id COMMA Parameter_list:pl {: RESULT = new ExpList(new ParamExp(tleft, t, id), pl); :}
+                 | Type:t ID:id {: RESULT = new ExpList(new ParamExp(tleft, t, id), null); :}
+                 | Type:t COMMA Parameter_list:pl {: RESULT = new ExpList(new ParamExp(tleft, t, null), pl); :}
+                 | Type:t {: RESULT = new ExpList(new ParamExp(tleft, t, null), null); :};
+
+Initialization ::= ASSIGN Initializer_value:e {: RESULT = e; :}
+                 | /* empty */ {: RESULT = null; :};
+
+Initializer_value ::= Assignment_expression:e {: RESULT = e; :}
+                    | LBRACE:open Initializer_items:elems RBRACE
+                      {: RESULT = new ArrayInitExp(openleft, elems); :};
+
+Initializer_items ::= Initializer_value:item Initializer_tail:tail
+                      {: RESULT = new ExpList(item, tail); :};
+
+Initializer_tail ::= COMMA Initializer_items:rest {: RESULT = rest; :}
+                   | COMMA {: RESULT = null; :}
+                   | /* empty */ {: RESULT = null; :};
+
+Optional_for_increment ::= Expression:e {: RESULT = e; :}
+                       | /* empty */ {: RESULT = null; :};
 
 //Statements:
-Statement ::= compound_statement:s   {: RESULT = s; :}
-            | expression_statement:s {: RESULT = s; :}
-            | selection_statement:s  {: RESULT = s; :}
-            | iteration_statement:s  {: RESULT = s; :}
-            | jump_statement:s       {: RESULT = s; :};
+Statement ::= Compound_statement:s   {: RESULT = s; :}
+            | Expression_statement:s {: RESULT = s; :}
+            | Selection_statement:s  {: RESULT = s; :}
+            | Iteration_statement:s  {: RESULT = s; :}
+            | Jump_statement:s       {: RESULT = s; :};
 
-Compound_statement ::= LBRACE declaration_list:dl statement_list:sl RBRACE {: RESULT = new CompoundStm(LBRACEleft, dl, sl); :};
+Compound_statement ::= LBRACE:kw Declaration_list:dl Statement_list:sl RBRACE {: RESULT = new CompoundStm(kwleft, dl, sl); :};
 
-Statement_list ::= statement:s statement_list:sl {: RESULT = new ExpList(sleft, s, sl); :}
+Statement_list ::= Statement:s Statement_list:sl {: RESULT = new StmList(s, sl); :}
+| /* empty */ {: RESULT = null; :};
 
-Expression_statement ::= expression:e SEMICOLON  {: RESULT = new ExpStm(eleft, e); :}
+Expression_statement ::= Expression:e SEMICOLON  {: RESULT = new ExpStm(eleft, e); :}
                        | SEMICOLON               {: RESULT = null; :};
 
-Selection_statement ::= IF LPAR expression:e RPAR statement:s1 ELSE statement:s2 {: RESULT = new IfStm(IFleft, e, s1, s2); :}
-                      | IF LPAR expression:e RPAR statement:s {: RESULT = new IfStm(IFleft, e, s, null); :};
+Selection_statement ::= IF:kw LPAREN Expression:e RPAREN Statement:s1 ELSE Statement:s2 {: RESULT = new IfStm(kwleft, e, s1, s2); :}
+                      | IF:kw LPAREN Expression:e RPAREN Statement:s {: RESULT = new IfStm(kwleft, e, s, null); :};
 
-Iteration_statement ::= WHILE LPAR expression:e RPAR statement:s {: RESULT = new WhileStm(WHILEleft, e, s); :}
-                      | DO statement:s WHILE LPAR expression:e RPAR SEMICOLON {: RESULT = new DoWhileStm(DOleft, s, e); :}
-                      | FOR LPAR expression_statement:init expression_statement:check expression:inc RPAR statement:s {: RESULT = new ForLoop(FORleft, init, check, inc, s); :};
+Iteration_statement ::= WHILE:kw LPAREN Expression:e RPAREN Statement:s {: RESULT = new WhileStm(kwleft, e, s); :}
+                      | DO:kw Statement:s WHILE LPAREN Expression:e RPAREN SEMICOLON {: RESULT = new DoWhileStm(kwleft, s, e); :}
+                      | FOR:kw LPAREN Expression_statement:initializer Expression_statement:check Optional_for_increment:inc RPAREN Statement:s {: RESULT = new ForLoop(kwleft, initializer, check, inc, s); :};
 
-Jump_statement ::= CONTINUE SEMICOLON            {: RESULT = new ContinueStm(CONTINUEleft); :}
-                 | BREAK SEMICOLON               {: RESULT = new BreakStm(BREAKleft); :}
-                 | RETURN expression:e SEMICOLON {: RESULT = new ReturnStm(RETURNleft, e); :}
-                 | RETURN SEMICOLON              {: RESULT = new ReturnStm(RETURNleft, null); :};
+Jump_statement ::= CONTINUE:kw SEMICOLON            {: RESULT = new ContinueStm(kwleft); :}
+                 | BREAK:kw SEMICOLON               {: RESULT = new BreakStm(kwleft); :}
+                 | RETURN:kw Expression:e SEMICOLON {: RESULT = new ReturnStm(kwleft, e); :}
+                 | RETURN:kw SEMICOLON              {: RESULT = new ReturnStm(kwleft, null); :};
 
 //Expressions:
-Expression ::= assignment_expression:e          {: RESULT = e; :}
-             | expression:e COMMA assignment_expression:ae {: RESULT = new OpExp(eleft, e, OpExp.COMMA, ae); :};
+Expression ::= Assignment_expression:e          {: RESULT = e; :}
+             | Expression:e COMMA Assignment_expression:ae {: RESULT = new OpExp(eleft, e, OpExp.COMMA, ae); :};
 
-Assignment_expression ::= conditional_expression:e {: RESULT = e; :}
-                        | unary_expression:lhs ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.ASSIGN, rhs); :}
-                        | unary_expression:lhs PLUS_ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.PLUS_ASSIGN, rhs); :}
-                        | unary_expression:lhs MINUS_ASSIGN assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.MINUS_ASSIGN, rhs); :};
+Assignment_expression ::= Conditional_expression:e {: RESULT = e; :}
+                        | Unary_expression:lhs ASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.ASSIGN, rhs); :}
+                        | Unary_expression:lhs ADDASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.PLUS_ASSIGN, rhs); :}
+                        | Unary_expression:lhs SUBASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.MINUS_ASSIGN, rhs); :}
+    | Unary_expression:lhs MULASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.TIMES_ASSIGN, rhs); :}
+    | Unary_expression:lhs DIVASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.DIVIDE_ASSIGN, rhs); :}
+    | Unary_expression:lhs MODASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.MOD_ASSIGN, rhs); :}
+    | Unary_expression:lhs LSHIFTASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.LSHIFT_ASSIGN, rhs); :}
+    | Unary_expression:lhs RSHIFTASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.RSHIFT_ASSIGN, rhs); :}
+    | Unary_expression:lhs BWISEANDASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.AND_ASSIGN, rhs); :}
+    | Unary_expression:lhs BWISEXORASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.XOR_ASSIGN, rhs); :}
+    | Unary_expression:lhs BWISEORASSIGN Assignment_expression:rhs {: RESULT = new AssignExp(lhsleft, lhs, AssignExp.OR_ASSIGN, rhs); :};
 
-Conditional_expression ::= logical_or_expression:e {: RESULT = e; :}
-                         | logical_or_expression:cond QMARK expression:trueExp COLON conditional_expression:falseExp {: RESULT = new CondExp(condleft, cond, trueExp, falseExp); :};
+Conditional_expression ::= Logical_or_expression:e {: RESULT = e; :}
+                         | Logical_or_expression:cond QUESTION Expression:trueExp COLON Conditional_expression:falseExp {: RESULT = new CondExp(condleft, cond, trueExp, falseExp); :};
 
-Logical_or_expression ::= logical_and_expression:e {: RESULT = e; :}
-                        | logical_or_expression:l OR logical_and_expression:r {: RESULT = new OpExp(lleft, l, OpExp.OR, r); :};
+Logical_or_expression ::= Logical_and_expression:e {: RESULT = e; :}
+                        | Logical_or_expression:l OR Logical_and_expression:r {: RESULT = new OpExp(lleft, l, OpExp.OR, r); :};
 
-Logical_and_expression ::= equality_expression:e {: RESULT = e; :}
-                         | logical_and_expression:l AND equality_expression:r {: RESULT = new OpExp(lleft, l, OpExp.AND, r); :};
+Logical_and_expression ::= Inclusive_or_expression:e {: RESULT = e; :}
+                         | Logical_and_expression:l AND Inclusive_or_expression:r {: RESULT = new OpExp(lleft, l, OpExp.AND, r); :};
 
-Equality_expression ::= relational_expression:e {: RESULT = e; :}
-                      | equality_expression:l EQ relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.EQ, r); :}
-                      | equality_expression:l NEQ relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.NEQ, r); :};
+Inclusive_or_expression ::= Exclusive_or_expression:e {: RESULT = e; :}
+    | Inclusive_or_expression:l BWISEOR Exclusive_or_expression:r
+      {: RESULT = new OpExp(lleft, l, OpExp.BIT_OR, r); :};
 
-Relational_expression ::= additive_expression:e {: RESULT = e; :}
-                        | relational_expression:l LT additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LT, r); :}
-                        | relational_expression:l GT additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GT, r); :}
-                        | relational_expression:l LE additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LE, r); :}
-                        | relational_expression:l GE additive_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GE, r); :};
+Exclusive_or_expression ::= And_expression:e {: RESULT = e; :}
+    | Exclusive_or_expression:l BWISEXOR And_expression:r
+      {: RESULT = new OpExp(lleft, l, OpExp.BIT_XOR, r); :};
 
-Additive_expression ::= multiplicative_expression:e {: RESULT = e; :}
-                      | additive_expression:l PLUS multiplicative_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.PLUS, r); :}
-                      | additive_expression:l MINUS multiplicative_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MINUS, r); :};
+And_expression ::= Equality_expression:e {: RESULT = e; :}
+    | And_expression:l BITWISEAND Equality_expression:r
+      {: RESULT = new OpExp(lleft, l, OpExp.BIT_AND, r); :};
 
-Multiplicative_expression ::= unary_expression:e {: RESULT = e; :}
-                            | multiplicative_expression:l MUL unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MUL, r); :}
-                            | multiplicative_expression:l DIV unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.DIV, r); :}
-                            | multiplicative_expression:l MOD unary_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MOD, r); :};
+Equality_expression ::= Relational_expression:e {: RESULT = e; :}
+                      | Equality_expression:l EQ Relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.EQ, r); :}
+                      | Equality_expression:l NEQ Relational_expression:r {: RESULT = new OpExp(lleft, l, OpExp.NEQ, r); :};
 
-Unary_expression ::= postfix_expression:e {: RESULT = e; :}
-                   | INC unary_expression:e   {: RESULT = new UnaryOpExp(INCleft, UnaryOpExp.PRE_INC, e); :}
-                   | DEC unary_expression:e   {: RESULT = new UnaryOpExp(DECleft, UnaryOpExp.PRE_DEC, e); :}
-                   | MINUS unary_expression:e {: RESULT = new UnaryOpExp(MINUSleft, UnaryOpExp.NEG, e); :}
-                   | PLUS unary_expression:e  {: RESULT = new UnaryOpExp(PLUSleft, UnaryOpExp.POS, e); :}
-                   | NOT unary_expression:e   {: RESULT = new UnaryOpExp(NOTleft, UnaryOpExp.NOT, e); :}
-				   | MUL unary_expression:e   {: RESULT = new UnaryOpExp(MULleft, UnaryOpExp.DEREF, e); :}
-				   | AND unary_expression:e   {: RESULT = new UnaryOpExp(ANDleft, UnaryOpExp.ADDR_OF, e); :};
+Relational_expression ::= Shift_expression:e {: RESULT = e; :}
+                        | Relational_expression:l LT Shift_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LT, r); :}
+                        | Relational_expression:l GT Shift_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GT, r); :}
+                        | Relational_expression:l LE Shift_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.LE, r); :}
+                        | Relational_expression:l GE Shift_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.GE, r); :};
+
+Shift_expression ::= Additive_expression:e {: RESULT = e; :}
+    | Shift_expression:l LSHIFT Additive_expression:r
+      {: RESULT = new OpExp(lleft, l, OpExp.SHL, r); :}
+    | Shift_expression:l RSHIFT Additive_expression:r
+      {: RESULT = new OpExp(lleft, l, OpExp.SHR, r); :};
+
+Additive_expression ::= Multiplicative_expression:e {: RESULT = e; :}
+                      | Additive_expression:l PLUS Multiplicative_expression:r  {: RESULT = new OpExp(lleft, l, OpExp.PLUS, r); :}
+                      | Additive_expression:l MINUS Multiplicative_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MINUS, r); :};
+
+Multiplicative_expression ::= Cast_expression:e {: RESULT = e; :}
+                            | Multiplicative_expression:l TIMES Cast_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MUL, r); :}
+                            | Multiplicative_expression:l DIVIDE Cast_expression:r {: RESULT = new OpExp(lleft, l, OpExp.DIV, r); :}
+                            | Multiplicative_expression:l MODULUS Cast_expression:r {: RESULT = new OpExp(lleft, l, OpExp.MOD, r); :};
+
+Cast_expression ::= Unary_expression:e {: RESULT = e; :};
+
+Cast_type ::= Builtin_type:t Type_augments:a {: RESULT = t + a; :}
+            | Builtin_type:t {: RESULT = t; :};
+
+Builtin_type ::= VOID {: RESULT = "void"; :}
+               | CHAR {: RESULT = "char"; :}
+               | SHORT {: RESULT = "short"; :}
+               | INT {: RESULT = "int"; :}
+               | LONG {: RESULT = "long"; :}
+               | SIGNED {: RESULT = "signed"; :}
+               | UNSIGNED {: RESULT = "unsigned"; :};
+
+Unary_expression ::= Postfix_expression:e {: RESULT = e; :}
+                   | INCREMENT:op Unary_expression:e   {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.PRE_INC, e); :}
+                   | DECREMENT:op Unary_expression:e   {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.PRE_DEC, e); :}
+                   | MINUS:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.NEG, e); :}
+                   | PLUS:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.POS, e); :}
+                   | NOT:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.NOT, e); :}
+                   | TIMES:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.DEREF, e); :}
+                   | BITWISEAND:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.ADDR_OF, e); :}
+                   | TILDE:op Cast_expression:e {: RESULT = new UnaryOpExp(opleft, UnaryOpExp.BIT_NOT, e); :}
+                   | SIZEOF:kw LPAREN Cast_type:t RPAREN {: RESULT = new SizeofExp(kwleft, null, t); :};
 
 
-Postfix_expression ::= primary_expression:e {: RESULT = e; :}
-					 | postfix_expression:e LBRACK expression:index RBRACK {: RESULT = new ArrayRefExp(eleft, e, index); :}
-					 | postfix_expression:e LPAR argument_expression_list:args RPAR {: RESULT = new CallExp(eleft, e, args); :}
-					 | postfix_expression:e DOT IDENTIFIER:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), false); :}
-				     | postfix_expression:e ARROW IDENTIFIER:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), true); :}
-					 | postfix_expression:e INC {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_INC, e); :}
-					 | postfix_expression:e DEC {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_DEC, e); :};
+Postfix_expression ::= Primary_expression:e {: RESULT = e; :}
+					 | Postfix_expression:e LBRACK Expression:index RBRACK {: RESULT = new ArrayRefExp(eleft, e, index); :}
+					 | Postfix_expression:e LPAREN Argument_expression_list:args RPAREN {: RESULT = new CallExp(eleft, e, args); :}
+					 | Postfix_expression:e PERIOD ID:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), false); :}
+				     | Postfix_expression:e ARROW ID:id {: RESULT = new MemberExp(eleft, e, Symbol.symbol(id), true); :}
+					 | Postfix_expression:e INCREMENT {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_INC, e); :}
+					 | Postfix_expression:e DECREMENT {: RESULT = new UnaryOpExp(eleft, UnaryOpExp.POST_DEC, e); :};
 
-Argument_expression_list ::= assignment_expression:e COMMA argument_expression_list:el {: RESULT = new ExpList(eleft, e, el); :}
-						   | assignment_expression:e {: RESULT = new ExpList(eleft, e, null); :}
+Argument_expression_list ::= Assignment_expression:e COMMA Argument_expression_list:el {: RESULT = new ExpList(e, el); :}
+						   | Assignment_expression:e {: RESULT = new ExpList(e, null); :}
+| /* empty */ {: RESULT = null; :};
 
-Primary_expression ::= IDENTIFIER:id {: RESULT = new VarExp(idleft, Symbol.symbol(id));细 :}
-					 | INT_LITERAL:val   {: RESULT = new IntExp(valleft, val); :}
+Primary_expression ::= ID:id {: RESULT = new VarExp(idleft, new Absyn.SimpleVar(idleft, Symbol.symbol(id))); :}
+					 | DECIMAL_LITERAL:val   {: RESULT = new IntExp(valleft, val); :}
 					 | STRING_LITERAL:s  {: RESULT = new StringExp(sleft, s); :}
-					 | LPAR expression:e RPAR {: RESULT = e; :};
+                     | CHAR_LITERAL:c {: RESULT = new CharExp(cleft, c); :}
+					 | LPAREN:open Expression:e RPAREN {: RESULT = new ParenExp(openleft, e); :};
