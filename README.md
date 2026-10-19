@@ -28,7 +28,7 @@ AI tools assisted with generating test cases to validate our implementation
 Extended the Project 1 lexer with a JavaCUP parser that generates and prints an Abstract Syntax Tree (AST).
 
 ### Contributions
-- Courtney Platt: Write your own here.
+- Courtney Platt: Worked on the Abysn files.
 - Christopher Brown: Write your own here.
 - Aaron Meche: Write your own here.
 - Minseo Lee: Completed AST classes, integrated the parser, fixed grammar issues.
