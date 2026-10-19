@@ -37,4 +37,4 @@ Extended the Project 1 lexer with a JavaCUP parser that generates and prints an 
 The project builds successfully and passes the tested C programs. One dangling-else shift/reduce conflict is resolved by shifting. No reduce/reduce conflicts were reported. Error recovery is limited, and some C89 features are not implemented.
 
 ### AI Usage
-AI assisted with creating test cases, code suggestions, and debugging.
+AI assisted with creating test cases and debugging.
