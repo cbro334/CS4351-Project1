@@ -1,0 +1,17 @@
+package Temp;
+
+public class label {
+    private static int count = 0;
+    private String name;
+
+    public label() {
+        name = "L " + count++;
+    }
+   public label(String name){
+       this.name = name;
+   }
+   @Override
+   public String toString() {
+       return name;
+   }
+}

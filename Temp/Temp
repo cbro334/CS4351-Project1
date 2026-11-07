@@ -1,0 +1,25 @@
+package Temp; 
+
+public class Temp {
+	private static int count = 100; 
+	private int num; 
+
+	public Temp() {
+		num = count++;
+	}
+    @Override
+	public String toString() {
+		return "T " + num;
+	}
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Temp)) {
+            return false;
+        }
+        return num == ((Temp) obj).num;
+    }
+    @Override
+    public int hashCode() {
+        return num
+    }
+}
