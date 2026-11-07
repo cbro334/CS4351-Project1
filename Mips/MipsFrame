@@ -1,0 +1,62 @@
+package Mips;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import Frame.*;
+import Temp.*;
+
+// Mips implementation of an activation record
+
+public class MipsFrame extends Frame {
+    
+    private int nextLocalOffset; 
+
+    /**  create a mips frame and allocate its formal parameters
+     * @parm name procdure label 
+     * @parm formalEscapes indicared which parameters are escaped
+     */
+    public MipsFrame(label name, boolean[] formalEscape) { 
+        super(name, allocateFormals(formalEscape));
+
+        nextLocalOffset = -WORD_SIZE;
+    }
+     /**
+     * Allocates formal parameters.
+     *
+     * @param formalEscapes escape information for each parameter
+     * @return allocated formal accesses
+     */
+    private static List<Access> allocateFormals(boolean[] formalEscapes) {
+        List<Access> formals = new ArrayList<>();
+        int offset = 0;
+
+        for (boolean escaped : formalEscapes) {
+            if (escapes) {
+                formal.add(new InFrame(offset));
+            } else {
+                formal.add(new InReg(new Temp()));
+            }
+            offset += WORD_SIZE;
+        }
+
+        return formals;
+    }
+}
+/**
+     * Allocates a local variable.
+     *
+     * @param escapes true if the variable escapes
+     * @return its frame or register access
+     */
+
+@Override
+public Access allocLocal(boolean escapes) {
+    if (escapes) {
+        Access access = new InFrame(nextLocalOffset);
+        nextLocalOffset -= WORD_SIZE;
+        return access;
+    } else {
+        return new InReg(new Temp());
+    }
+}
