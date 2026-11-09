@@ -1,0 +1,20 @@
+import Temp.Temp;
+import Tree.Exp;
+import Tree.TEMP;
+
+// a variable stored in a temporary register
+public class InReg extends Access {
+    public final Temp temp;
+
+    public InReg(Temp temp) {
+        if (temp == null) {
+            throw new IllegalArgumentException("temp cannot be null");
+        }
+        this.temp = temp;
+    }
+
+    @Override
+    public Exp exp(Exp framePointer) {
+        return new TEMP(temp);
+    }
+}
