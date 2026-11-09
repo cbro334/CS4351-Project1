@@ -23,12 +23,12 @@ Floating-point constants, header names, preprocessing numbers, trigraphs, and mu
 
 AI tools assisted with generating test cases to validate our implementation
 
-## Project 2
+## Project 3
 
 Extended the Project 1 lexer with a JavaCUP parser that generates and prints an Abstract Syntax Tree (AST).
 
 ### Contributions
-- Courtney Platt: Worked on the Abysn files.
+- Courtney Platt: Worked on Backend 
 - Christopher Brown: Translated grammar from C89 documentation into Grm.cup.
 - Aaron Meche: Write your own here.
 - Minseo Lee: Completed AST classes, integrated the parser, fixed grammar issues.
