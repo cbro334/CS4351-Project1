@@ -20,6 +20,6 @@ public class Temp {
     }
     @Override
     public int hashCode() {
-        return num
+        return num;
     }
 }
