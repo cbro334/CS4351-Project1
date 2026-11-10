@@ -1,0 +1,178 @@
+package FindEscape;
+
+import Absyn.*;
+import Symbol.Symbol;
+import Symbol.Table; 
+
+public class FindEscape {
+    private Table env = new Table();
+
+    public FindEscape(Exp e) {
+        env.beginScope();
+        traverseExp(0, e);
+        env.endScope();
+    }
+
+    private void traverseVar(int depth, Var v) {
+        if (v == null) return;
+
+        if (v instanceof SimpleVar) {
+            // Sequential lookups don't escape in C unless an address-of operation is used
+        } 
+        else if (v instanceof FieldVar) {
+            FieldVar fv = (FieldVar) v;
+            traverseVar(depth, fv.var);
+        } 
+        else if (v instanceof SubscriptVar) {
+            SubscriptVar jv = (SubscriptVar) v;
+            traverseVar(depth, jv.var);
+            traverseExp(depth, jv.index);
+        }
+    }
+
+    private void markAddressEscaped(Exp e) {
+        if (e == null) return;
+
+        if (e instanceof VarExp) {
+            Var v = ((VarExp) e).var;
+            if (v instanceof SimpleVar) {
+                SimpleVar sv = (SimpleVar) v;
+                Object entry = env.get(sv.name);
+                if (entry != null) {
+                    if (entry instanceof VarEscape) {
+                        ((VarEscape) entry).vd.escape = true;
+                    } else if (entry instanceof FormalEscape) {
+                        ((FormalEscape) entry).fl.escape = true;
+                    }
+                }
+            } else if (v instanceof FieldVar) {
+                markAddressEscaped(new VarExp(e.pos, ((FieldVar) v).var));
+            } else if (v instanceof SubscriptVar) {
+                markAddressEscaped(new VarExp(e.pos, ((SubscriptVar) v).var));
+            }
+        }
+    }
+
+    private void traverseExp(int depth, Exp e) {
+        if (e == null) return;
+
+        if (e instanceof VarExp) {
+            traverseVar(depth, ((VarExp) e).var);
+        } 
+        else if (e instanceof UnaryOpExp) {
+            UnaryOpExp uoe = (UnaryOpExp) e;
+            if (uoe.oper == UnaryOpExp.ADDR_OF) {
+                markAddressEscaped(uoe.exp);
+            }
+            traverseExp(depth, uoe.exp);
+        }
+        else if (e instanceof CallExp) {
+            CallExp ce = (CallExp) e;
+            for (ExpList args = ce.args; args != null; args = args.tail) {
+                traverseExp(depth, args.head);
+            }
+        } 
+         else if (e instanceof RecordExp) {
+            RecordExp re = (RecordExp) e;
+            for (FieldExpList rfl = re.fields; rfl != null; rfl = rfl.tail) {
+                traverseExp(depth, rfl.init);
+            }
+        } 
+        else if (e instanceof SeqExp) {
+            SeqExp se = (SeqExp) e;
+            for (ExpList el = se.list; el != null; el = el.tail) {
+                traverseExp(depth, el.head);
+            }
+        } 
+        else if (e instanceof AssignExp) {
+            AssignExp ae = (AssignExp) e;
+            traverseVar(depth, ae.var);
+            traverseExp(depth, ae.exp);
+        } 
+        else if (e instanceof IfExp) {
+            IfExp ie = (IfExp) e;
+            traverseExp(depth, ie.test);
+            traverseExp(depth, ie.thenclause);
+            traverseExp(depth, ie.elseclause);
+        } 
+        else if (e instanceof WhileExp) {
+            WhileExp we = (WhileExp) e;
+            traverseExp(depth, we.test);
+            traverseExp(depth, we.body);
+        } 
+       else if (e instanceof ForExp) {
+            ForExp fe = (ForExp) e;
+            // Traverse the loop variable initialization (low bound) and high bound
+            if (fe.var != null) {
+                traverseExp(depth, fe.var.init);
+            }
+            traverseExp(depth, fe.hi);
+            
+            // Loop index variables are locally scoped
+            env.beginScope();
+            if (fe.var != null) {
+                fe.var.escape = false;
+                env.put(fe.var.name, new VarEscape(depth, fe.var));
+            }
+            
+            traverseExp(depth, fe.body);
+            env.endScope();
+        }
+        else if (e instanceof ArrayExp) {
+            ArrayExp ae = (ArrayExp) e;
+            traverseExp(depth, ae.size);
+            traverseExp(depth, ae.init);
+        } 
+        else if (e instanceof LetExp) {
+            LetExp le = (LetExp) e;
+            env.beginScope();
+            for (DecList dl = le.decs; dl != null; dl = dl.tail) {
+                traverseDec(depth, dl.head);
+            }
+            traverseExp(depth, le.body);
+            env.endScope();
+        }
+    }
+
+    private void traverseDec(int depth, Dec d) {
+        if (d == null) return;
+
+        if (d instanceof VarDec) {
+            VarDec vd = (VarDec) d;
+            vd.escape = false;
+            traverseExp(depth, vd.init);
+            env.put(vd.name, new VarEscape(depth, vd));
+        } 
+         else if (d instanceof FunctionDec) {
+            FunctionDec fd = (FunctionDec) d;
+            
+            for (FunctionDec f = fd; f != null; f = f.next) {
+                f.leaf = true;
+            }
+            
+            for (FunctionDec f = fd; f != null; f = f.next) {
+                env.beginScope();
+                
+                for (FieldList fl = f.params; fl != null; fl = fl.tail) {
+                    fl.escape = false;
+                    env.put(fl.name, new FormalEscape(depth + 1, fl));
+                }
+                
+                traverseExp(depth + 1, f.body);
+                env.endScope();
+            }
+        } 
+    }
+}
+
+class VarEscape {
+    int depth;
+    VarDec vd;
+    VarEscape(int d, VarDec v) { depth = d; vd = v; }
+}
+
+class FormalEscape {
+    int depth;
+    FieldList fl;
+    FormalEscape(int d, FieldList f) { depth = d; fl = f; }
+}
