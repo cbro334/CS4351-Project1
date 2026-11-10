@@ -9,8 +9,10 @@ import Temp.*;
 // Mips implementation of an activation record
 
 public class MipsFrame extends Frame {
+
+    public static final int WORD_SIZE = 4;
     
-    private int nextLocalOffset; 
+    private int nextLocalOffset;
 
     /**  create a mips frame and allocate its formal parameters
      * @parm name procdure label 
@@ -33,16 +35,15 @@ public class MipsFrame extends Frame {
 
         for (boolean escaped : formalEscapes) {
             if (escaped) {
-                formal.add(new InFrame(offset));
+                formals.add(new InFrame(offset));
             } else {
-                formal.add(new InReg(new Temp()));
+                formals.add(new InReg(new Temp()));
             }
             offset += WORD_SIZE;
         }
 
         return formals;
     }
-}
 /**
      * Allocates a local variable.
      *
@@ -51,12 +52,13 @@ public class MipsFrame extends Frame {
      */
 
 @Override
-public Access allocLocal(boolean escapes) {
-    if (escapes) {
+public Access allocLocal(boolean escape) {
+    if (escape) {
         Access access = new InFrame(nextLocalOffset);
         nextLocalOffset -= WORD_SIZE;
         return access;
     } else {
         return new InReg(new Temp());
     }
+  }
 }
