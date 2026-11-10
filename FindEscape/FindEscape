@@ -17,6 +17,17 @@ public class FindEscape {
         if (v == null) return;
 
         if (v instanceof SimpleVar) {
+            SimpleVar sv = (SimpleVar) v;
+
+            Object entry = env.get(sv.name);
+
+            if (entry instanceof VarEscape) {
+                VarEscape ve = (VarEscape) entry;
+
+                if (ve.depth < depth) {
+                    ve.vd.escape = true;
+                }
+            }
             // Sequential lookups don't escape in C unless an address-of operation is used
         } 
         else if (v instanceof FieldVar) {
@@ -24,9 +35,9 @@ public class FindEscape {
             traverseVar(depth, fv.var);
         } 
         else if (v instanceof SubscriptVar) {
-            SubscriptVar jv = (SubscriptVar) v;
-            traverseVar(depth, jv.var);
-            traverseExp(depth, jv.index);
+            SubscriptVar sv = (SubscriptVar) v;
+            traverseVar(depth, sv.var);
+            traverseExp(depth, sv.index);
         }
     }
 

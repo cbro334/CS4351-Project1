@@ -6,6 +6,7 @@ public class VarDecl extends Dec {
     public String type;
     public Symbol name;
     public Exp initializer;
+    public boolean escape = false;
 
     public VarDecl(int p, ExpList modifiers, String type,
                    Symbol name, Exp initializer) {
