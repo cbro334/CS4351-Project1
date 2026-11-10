@@ -29,7 +29,7 @@ Extended the Project 1 lexer with a JavaCUP parser that generates and prints an 
 
 ### Contributions
 - Courtney Platt: Worked on Backend 
-- Christopher Brown: Translated grammar from C89 documentation into Grm.cup.
+- Christopher Brown: Created dispatch functions in Semant.java
 - Aaron Meche: Write your own here.
 - Minseo Lee: Completed AST classes, integrated the parser, fixed grammar issues.
 
