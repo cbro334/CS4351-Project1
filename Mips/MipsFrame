@@ -32,7 +32,7 @@ public class MipsFrame extends Frame {
         int offset = 0;
 
         for (boolean escaped : formalEscapes) {
-            if (escapes) {
+            if (escaped) {
                 formal.add(new InFrame(offset));
             } else {
                 formal.add(new InReg(new Temp()));
