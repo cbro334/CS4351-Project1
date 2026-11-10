@@ -15,11 +15,11 @@ public class MipsFrame extends Frame {
     private int nextLocalOffset;
 
     /**  create a mips frame and allocate its formal parameters
-     * @parm name procdure label 
-     * @parm formalEscapes indicared which parameters are escaped
+     * @param name procedure label
+     * @param formalEscapes indicates which parameters are escaped
      */
-    public MipsFrame(label name, boolean[] formalEscape) { 
-        super(name, allocateFormals(formalEscape));
+    public MipsFrame(label name, boolean[] formalEscapes) { 
+        super(name, allocateFormals(formalEscapes));
 
         nextLocalOffset = -WORD_SIZE;
     }
