@@ -10,5 +10,5 @@ public class FunctionDec extends Dec {
 		     FunctionDec x) {
     pos=p; name=n; params=a; result=r; body=b; next=x;
   }
-  public boolean leaf = false;
+  public boolean leaf = true;
 }
