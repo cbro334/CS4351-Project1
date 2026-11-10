@@ -1,25 +1,34 @@
-protected Frame(label name, List<Access> formals) {
-    if (name == null) {
-        throw new IllegalArgumentException("Frame name cannot be null");
+package Frame;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import Temp.label;
+
+public abstract class Frame {
+    private label name;
+    private List<Access> formalAccesses;
+
+    protected Frame(label name, List<Access> formals) {
+        if (name == null) {
+            throw new IllegalArgumentException("Frame name cannot be null");
+        }
+        if (formals == null) {
+            throw new IllegalArgumentException("formals cannot be null");
+        }
+        this.name = name;
+        this.formalAccesses = new ArrayList<>(formals);
     }
-    if (formals == null) {
-        throw new IllegalArgumentException("formals cannot be null");
+
+    public label name() {
+        return name;
     }
-    this.name = name;
-    this.formalAccesses = new ArrayList<>(formals);
 
-}
+    public List<Access> formals() {
+        return Collections.unmodifiableList(formalAccesses);
+    }
 
-public label name() {
-    return name;
-}
-
-public List<Access> formals() {
-    return Collections.unmodifiableList(formalAccesses);
-}
-
-//allocate a local variable in the frame or a temp register
-public abstract Access allocLocal(boolean escape); {
-
+    public abstract Access allocLocal(boolean escape);
 }
 
