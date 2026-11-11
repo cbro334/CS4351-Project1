@@ -123,29 +123,29 @@ public class Semant {
   }
 
   //Declaration Dispatch
-  ExpTy transDec(Absyn.Dec d) {
+  ExpTy transDec(Absyn.Dec e) {
           ExpTy result;
 
-          if (d instanceof Absyn.VarDec)
+          if (e instanceof Absyn.VarDec)
                   return transDec((Absyn.VarDec)d);
-          if (d instanceof Absyn.VarDecl)
+          if (e instanceof Absyn.VarDecl)
                   return transDec((Absyn.VarDecl)d);
-          if (d instanceof Absyn.FunctionDec)
+          if (e instanceof Absyn.FunctionDec)
                   return transDec((Absyn.FunctionDec)d);
-          if (d instanceof Absyn.FunDecl)
+          if (e instanceof Absyn.FunDecl)
                   return transDec((Absyn.FunDecl)d);
-          if (d instanceof Absyn.FunPrototypeDecl)
+          if (e instanceof Absyn.FunPrototypeDecl)
                   return transDec((Absyn.FunPrototypeDecl)d);
-          if (d instanceof Absyn.TypeDec)
+          if (e instanceof Absyn.TypeDec)
                   return transDec((Absyn.TypeDec)d);
-          if (d instanceof Absyn.TypedefDecl)
+          if (e instanceof Absyn.TypedefDecl)
                   return transDec((Absyn.TypedefDecl)d);
-          if (d instanceof Absyn.StructUnionDecl)
+          if (e instanceof Absyn.StructUnionDecl)
                   return transDec((Absyn.StructUnionDecl)d);
-          if (d instanceof Absyn.EnumDecl)
+          if (e instanceof Absyn.EnumDecl)
                   return transDec((Absyn.EnumDecl)d);
           else throw new Error("Semant.transDec");
-          d.type = result.ty;
+          e.type = result.ty;
           return result;
   }
 
@@ -174,29 +174,29 @@ public class Semant {
   }
 
   //Statement Dispatch
-  ExpTy transStm(Absyn.Stm s) {
+  ExpTy transStm(Absyn.Stm e) {
           ExpTy result;
 
-          if (s instanceof Absyn.BreakStm)
+          if (e instanceof Absyn.BreakStm)
                   return transStm((Absyn.BreakStm)s);
-          if (s instanceof Absyn.CompoundStm)
+          if (e instanceof Absyn.CompoundStm)
                   return transStm((Absyn.CompoundStm)s);
-          if (s instanceof Absyn.ContinueStm)
+          if (e instanceof Absyn.ContinueStm)
                   return transStm((Absyn.ContinueStm)s);
-          if (s instanceof Absyn.DoWhileStm)
+          if (e instanceof Absyn.DoWhileStm)
                   return transStm((Absyn.DoWhileStm)s);
-          if (s instanceof Absyn.ExpStm)
+          if (e instanceof Absyn.ExpStm)
                   return transStm((Absyn.ExpStm)s);
-          if (s instanceof Absyn.IfStm)
+          if (e instanceof Absyn.IfStm)
                   return transStm((Absyn.IfStm)s);
-          if (s instanceof Absyn.ReturnStm)
+          if (e instanceof Absyn.ReturnStm)
                   return transStm((Absyn.ReturnStm)s);
-          if (s instanceof Absyn.StmList)
+          if (e instanceof Absyn.StmList)
                   return transStm((Absyn.StmList)s);
-          if (s instanceof Absyn.WhileStm)
+          if (e instanceof Absyn.WhileStm)
                   return transStm((Absyn.WhileStm)s);
           else throw new Error("Semant.transStm");
-          s.type = result.ty;
+          e.type = result.ty;
           return result;
   }
 
