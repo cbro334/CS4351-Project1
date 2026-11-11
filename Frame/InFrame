@@ -1,4 +1,6 @@
-import Tree.BiNop; 
+package Frame;
+
+import Tree.BINOP;
 import Tree.CONST; 
 import Tree.Exp;
 import Tree.MEM;
