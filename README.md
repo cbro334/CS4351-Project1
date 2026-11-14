@@ -28,7 +28,7 @@ AI tools assisted with generating test cases to validate our implementation
 Extended the Project 1 lexer with a JavaCUP parser that generates and prints an Abstract Syntax Tree (AST).
 
 ### Contributions
-- Courtney Platt: Worked on Tree, FindEscape, Frame, Mips and Temp files
+- Courtney Platt: Developed backend compiler architecture across Tree, FindEscape, Frame, Mips, and Temp to handle IR translation and MIPS frame layout.
 - Christopher Brown: Created dispatch functions in Semant.java
 - Aaron Meche: Write your own here.
 - Minseo Lee: Write your own here. 
