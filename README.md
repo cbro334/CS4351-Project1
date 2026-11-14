@@ -31,7 +31,7 @@ Extended the Project 1 lexer with a JavaCUP parser that generates and prints an 
 - Courtney Platt: Worked on Tree, FindEscape, Frame, Mips and Temp files
 - Christopher Brown: Created dispatch functions in Semant.java
 - Aaron Meche: Write your own here.
-- Minseo Lee: Completed AST classes, integrated the parser, fixed grammar issues.
+- Minseo Lee: Write your own here. 
 
 ### Testing and Limitations
 The project builds successfully and passes the tested C programs. One dangling-else shift/reduce conflict is resolved by shifting. No reduce/reduce conflicts were reported. Error recovery is limited, and some C89 features are not implemented.
