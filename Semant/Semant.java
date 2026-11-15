@@ -692,19 +692,19 @@ public class Semant {
           ExpTy result;
 
           if (e instanceof Absyn.VarDec)
-                  return transDec((Absyn.VarDec)d);
+                  return transDec((Absyn.VarDec)e);
           if (e instanceof Absyn.FunctionDec)
-                  return transDec((Absyn.FunctionDec)d);
+                  return transDec((Absyn.FunctionDec)e);
           if (e instanceof Absyn.FunPrototypeDecl)
-                  return transDec((Absyn.FunPrototypeDecl)d);
+                  return transDec((Absyn.FunPrototypeDecl)e);
           if (e instanceof Absyn.TypeDec)
-                  return transDec((Absyn.TypeDec)d);
+                  return transDec((Absyn.TypeDec)e);
           if (e instanceof Absyn.TypedefDecl)
-                  return transDec((Absyn.TypedefDecl)d);
+                  return transDec((Absyn.TypedefDecl)e);
           if (e instanceof Absyn.StructUnionDecl)
-                  return transDec((Absyn.StructUnionDecl)d);
+                  return transDec((Absyn.StructUnionDecl)e);
           if (e instanceof Absyn.EnumDecl)
-                  return transDec((Absyn.EnumDecl)d);
+                  return transDec((Absyn.EnumDecl)e);
           else throw new Error("Semant.transDec");
           e.type = result.ty;
           return result;
@@ -747,7 +747,7 @@ public class Semant {
                           } else if (actualTarget instanceof Types.RECORD) {
                                   //structs is init w/list; unions match any member
                                   if (d.init instanceof Absyn.ArrayInitExp) {
-                                          checkInitList((Absyn.ArrayInitExp) d.init, actualTarget) ;
+                                          checkInitList((Absyn.ArrayInitExp) d.init, actualTarget);
                                   } else if (unionTypes.contains(actualTarget)) {
                                           ExpTy init = transExp(d.init);
                                           boolean matchesMember = false;

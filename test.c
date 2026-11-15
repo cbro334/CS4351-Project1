@@ -9,5 +9,5 @@ var int x = {{1,2},{1,2},{1,2}};
 
 fun int func(int x, int y) {
     var char a = 'a';
-    &&a;
+    &a;
 }
