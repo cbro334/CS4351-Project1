@@ -447,7 +447,7 @@ public class Semant {
                   return new ExpTy(null, VOID);
           }
           //search struct/union field for e.member
-          for (Types.RECORD field = (Types.RECORD) actual; field !- null; field = field.tail) {
+          for (Types.RECORD field = (Types.RECORD) actual; field != null; field = field.tail) {
                   if (field.fieldName == e.member) {
                           return new ExpTy(null, field.fieldType.actual());
                   }
