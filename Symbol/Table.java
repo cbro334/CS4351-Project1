@@ -1,4 +1,4 @@
-﻿package Symbol;
+package Symbol;
 import java.util.HashMap;
 public class Table {
     private HashMap<Symbol, Object> dict = new HashMap<>();

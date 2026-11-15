@@ -1,0 +1,46 @@
+Opening files...
+Parsing specification from standard input...
+Checking specification...
+Warning: Terminal "TYPE" was declared but never used
+Warning: Terminal "DOUBLE" was declared but never used
+Warning: Terminal "NIL" was declared but never used
+Warning: Terminal "ARRAY" was declared but never used
+Warning: Terminal "FLOAT" was declared but never used
+Warning: Terminal "GOTO" was declared but never used
+Warning: Terminal "THEN" was declared but never used
+Warning: Terminal "HASHHASH" was declared but never used
+Warning: Terminal "SWITCH" was declared but never used
+Warning: Terminal "ELIPSES" was declared but never used
+Warning: Terminal "DEFAULT" was declared but never used
+Warning: Terminal "FUNCTION" was declared but never used
+Warning: Terminal "IN" was declared but never used
+Warning: Terminal "OF" was declared but never used
+Warning: Terminal "END" was declared but never used
+Warning: Terminal "CASE" was declared but never used
+Warning: Terminal "TO" was declared but never used
+Warning: Terminal "LET" was declared but never used
+Warning: Terminal "HASH" was declared but never used
+Building parse tables...
+  Computing non-terminal nullability...
+  Computing first sets...
+  Building state machine...
+  Filling in tables...
+*** Shift/Reduce conflict found in state #201
+  between Selection_statement ::= IF LPAREN Expression RPAREN Statement (*) 
+  and     Selection_statement ::= IF LPAREN Expression RPAREN Statement (*) ELSE Statement 
+  under symbol ELSE
+  Resolved in favor of shifting.
+
+  Checking for non-reduced productions...
+Writing parser...
+Closing files...
+------- CUP v0.10g Parser Generation Summary -------
+  0 errors and 20 warnings
+  98 terminals, 55 non terminals, and 166 productions declared, 
+  producing 293 unique parse states.
+  19 terminals declared but not used.
+  0 non terminals declared but not used.
+  0 productions never reduced.
+  1 conflict detected (1 expected).
+  Code written to "Grm.java", and "sym.java".
+---------------------------------------------------- (v0.10g)
