@@ -1058,7 +1058,7 @@ public class Semant {
                   ExpTy cond = transExp(e.condition);
                   checkInt(cond, e.condition.pos);
           } else {
-                  error(e.pos, "missing condition in do-while stm")'
+                  error(e.pos, "missing condition in do-while stm");
           }
           return new ExpTy(null, VOID);
   }
