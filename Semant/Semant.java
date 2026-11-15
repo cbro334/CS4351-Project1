@@ -447,7 +447,7 @@ public class Semant {
                   return new ExpTy(null, VOID);
           }
           //search struct/union field for e.member
-          for (Types.RECORD field = (Types.RECORD) actual; field !- null; field = field.tail) {
+          for (Types.RECORD field = (Types.RECORD) actual; field != null; field = field.tail) {
                   if (field.fieldName == e.member) {
                           return new ExpTy(null, field.fieldType.actual());
                   }
@@ -566,7 +566,7 @@ public class Semant {
                   if (targetField == null) {
                           error(cur.pos, "struct/union '" + e.typ + "' has no member named '" + cur.name + "'");
                   } else if (!isAssignable(targetField.fieldType, initVal.ty)) {
-                          error(cur.pos, "incompatible type init field '" + cur.name " "'");
+                          error(cur.pos, "incompatible type init field '" + cur.name + "'");
                   }
           }
           return new ExpTy(null, recordType);
@@ -1058,7 +1058,7 @@ public class Semant {
                   ExpTy cond = transExp(e.condition);
                   checkInt(cond, e.condition.pos);
           } else {
-                  error(e.pos, "missing condition in do-while stm")'
+                  error(e.pos, "missing condition in do-while stm");
           }
           return new ExpTy(null, VOID);
   }

@@ -1,3 +1,9 @@
+package Semant;
+import Symbol.Symbol;
+import Symbol.Table;
+import Types.NAME;
+import Types.RECORD;
+import Types.Type;
 class Env {
   Table venv;                   // value environment
   Table tenv;                   // type environment
