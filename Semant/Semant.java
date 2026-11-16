@@ -24,6 +24,7 @@ public class Semant {
   static final Types.VOID   VOID   = new Types.VOID();
   static final Types.INT    INT    = new Types.INT();
   static final Types.STRING STRING = new Types.STRING();
+  static final Types.CHAR   CHAR   = new Types.CHAR();
   static final Types.NIL    NIL    = new Types.NIL();
 
   private Exp checkInt(ExpTy et, int pos) {
@@ -397,7 +398,7 @@ public class Semant {
           if (isAssignable(tActual, eActual)) {
                   return new ExpTy(null, tActual);
           }
-          if (isAssignable (tActual, eActual)) {
+          if (isAssignable(eActual, tActual)) {
                   return new ExpTy(null, eActual);
           }
           error(e.pos, "incompatible types in if-then-else branches");
@@ -467,7 +468,7 @@ public class Semant {
           ExpTy left = transExp(e.left);
           ExpTy right = transExp(e.right);
           Types.Type lActual = left.ty.actual();
-          Types.Type rActual = left.ty.actual();
+          Types.Type rActual = right.ty.actual();
           switch (e.oper) {
                   //arithmetic, bitwise, shift operators
                   case Absyn.OpExp.PLUS:
@@ -691,9 +692,7 @@ public class Semant {
   }
 
   //Declaration Dispatch
-  ExpTy transDec(Absyn.Dec e) {
-        ExpTy result;
-
+  Exp transDec(Absyn.Dec e) {
           if (e instanceof Absyn.VarDec)
                   return transDec((Absyn.VarDec)e);
           if (e instanceof Absyn.FunctionDec)
@@ -709,8 +708,6 @@ public class Semant {
           if (e instanceof Absyn.EnumDecl)
                   return transDec((Absyn.EnumDecl)e);
           else throw new Error("Semant.transDec");
-          e.type = result.ty;
-          return result;
   }
 
   //VarDec Translate
@@ -718,7 +715,7 @@ public class Semant {
           Type type;
           if (d.typ == null) {
                   //untyped declaration
-                  if (d.typ == null) {
+                  if (d.init == null) {
                           error(d.pos, "untyped variable '" + d.name + "' requires an init");
                           type = VOID;
                   } else if (d.init instanceof Absyn.ArrayInitExp) {
