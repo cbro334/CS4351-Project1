@@ -4,6 +4,8 @@ import Types.Type;
 
 public class Semant {
   Env env;
+  int loopDepth;
+  Type currentReturnType;
   public Semant(ErrorMsg.ErrorMsg err) {
     this(new Env(err));
   }
@@ -139,6 +141,7 @@ public class Semant {
                           error(cur.head.pos, "incompatible element type");
                   }
           }
+          return new ExpTy(null, new Types.ARRAY(elemType));
   }
   //ArrayRefExp Translate
   ExpTy transExp(Absyn.ArrayRefExp e) {
@@ -165,7 +168,7 @@ public class Semant {
           if (e.target != null) {
                   lhs = transExp(e.target);
                   lhsPos = e.target.pos;
-                  if (!isLValue(e.targer)) {
+                  if (!isLValue(e.target)) {
                           error(lhsPos, "expression is not assignale (lvalue required)");
                   }
           } else if (e.var != null) {
@@ -271,7 +274,7 @@ public class Semant {
           Types.Type srcActual = inner.ty.actual();
           Types.Type dstActual = destType.actual();
           //Cast Legality
-          if (!isCastable(arcActual, dstActual)) {
+          if (!isCastable(srcActual, dstActual)) {
                   error(e.pos, "invalid type cast to " + e.targetType);
           }
           return new ExpTy(null, dstActual);
@@ -391,7 +394,7 @@ public class Semant {
           if (tActual instanceof Types.VOID && eActual instanceof Types.VOID) {
                   return new ExpTy(null, VOID);
           }
-          if (isAssignablee(tActual, eActual)) {
+          if (isAssignable(tActual, eActual)) {
                   return new ExpTy(null, tActual);
           }
           if (isAssignable (tActual, eActual)) {
@@ -635,14 +638,14 @@ public class Semant {
                                   error(e.exp.pos, "lvalue required as incrment/decrement operand");
                           }
                           checkInt(operand, e.exp.pos);
-                          return new ExpTy(nul, INT);
+                          return new ExpTy(null, INT);
                   //address of (&x); requires address + returns pointer
                   case Absyn.UnaryOpExp.ADDR_OF:
                           if (!isLValue(e.exp)) {
                                   error(e.exp.pos, "lvalue required as unary & operand");
                                   return new ExpTy(null, VOID);
                           }
-                          return new ExpTY(null, new Types.POINTER(actual));
+                          return new ExpTy(null, new Types.POINTER(actual));
                   //pointer dereference (*ptr); requires pointer + returns pointed-to type
                   case Absyn.UnaryOpExp.DEREF:
                           if (!(actual instanceof Types.POINTER)) {
@@ -689,7 +692,7 @@ public class Semant {
 
   //Declaration Dispatch
   ExpTy transDec(Absyn.Dec e) {
-          ExpTy result;
+        ExpTy result;
 
           if (e instanceof Absyn.VarDec)
                   return transDec((Absyn.VarDec)e);
@@ -874,7 +877,7 @@ public class Semant {
           for (Absyn.TypeDec cur = d; cur != null; cur = cur.next) {
                   Types.NAME nameType = (Types.NAME) env.tenv.get(cur.name);
                   if (nameType != null) {
-                          nameType.bing(transTy(cur.ty));
+                          nameType.bind(transTy(cur.ty));
                   }
           }//detect cyclic type defs (type a = b; type b = a;)
           for (Absyn.TypeDec cur = d; cur != null; cur = cur.next) {
@@ -908,7 +911,7 @@ public class Semant {
           }//wrap in Types.NAME + bind to the resovled type in env.tenv
           Types.NAME nameType = new Types.NAME(d.alias);
           nameType.bind(targetType);
-          env.tent.put(d.alias, nameType);
+          env.tenv.put(d.alias, nameType);
           return null;
   }
 
@@ -916,7 +919,7 @@ public class Semant {
   Exp transDec(Absyn.StructUnionDecl d) {
           boolean isUnion = "union".equals(d.kind);
           //self-referential pointers
-          Type.NAME nameType = null;
+          Types.NAME nameType = null;
           if (d.name != null) {
                   if (env.tenv.get(d.name) != null) {
                           error(d.pos, "redeclaration of " + d.kind + " '" + d.name + "'");
@@ -996,19 +999,19 @@ public class Semant {
           ExpTy result;
 
           if (e instanceof Absyn.BreakStm)
-                  return transStm((Absyn.BreakStm)s);
+                  return transStm((Absyn.BreakStm)e);
           if (e instanceof Absyn.CompoundStm)
-                  return transStm((Absyn.CompoundStm)s);
+                  return transStm((Absyn.CompoundStm)e);
           if (e instanceof Absyn.ContinueStm)
-                  return transStm((Absyn.ContinueStm)s);
+                  return transStm((Absyn.ContinueStm)e);
           if (e instanceof Absyn.DoWhileStm)
-                  return transStm((Absyn.DoWhileStm)s);
+                  return transStm((Absyn.DoWhileStm)e);
           if (e instanceof Absyn.ExpStm)
-                  return transStm((Absyn.ExpStm)s);
+                  return transStm((Absyn.ExpStm)e);
           if (e instanceof Absyn.IfStm)
-                  return transStm((Absyn.IfStm)s);
+                  return transStm((Absyn.IfStm)e);
           if (e instanceof Absyn.ReturnStm)
-                  return transStm((Absyn.ReturnStm)s);
+                  return transStm((Absyn.ReturnStm)e);
           else throw new Error("Semant.transStm");
           e.type = result.ty;
           return result;
@@ -1078,7 +1081,7 @@ public class Semant {
           } else {
                   error(e.pos, "missing cond in if stm");
           }//translate then branch
-          if (E.thenStm != null) {
+          if (e.thenStm != null) {
                   transStm(e.thenStm);
           }//translate else branch
           if (e.elseStm != null) {
