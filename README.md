@@ -30,7 +30,7 @@ Extended the Project 1 lexer with a JavaCUP parser that generates and prints an 
 ### Contributions
 - Courtney Platt: Developed backend compiler architecture across Tree, FindEscape, Frame, Mips, and Temp to handle IR translation and MIPS frame layout.
 - Christopher Brown: Created dispatch functions in Semant.java
-- Aaron Meche: Write your own here.
+- Aaron Meche: Added testing cases and scripts, fixed package declarations, imports, and other syntax errors throughout project.
 - Minseo Lee: Write your own here. 
 
 ### Testing and Limitations
