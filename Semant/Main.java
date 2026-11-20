@@ -1,6 +1,7 @@
 package Semant;
 import java.io.PrintWriter;
 import Parse.Parse;
+import Translate.Translate;
 
 public class Main {
 
